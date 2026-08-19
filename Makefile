@@ -7,13 +7,14 @@ env-up:
 	@docker compose up -d todoapp-postgres
 
 env-down:
+	@make env-port-close
 	@docker compose down todoapp-postgres
 
 env-cleanup:
 	@read -p "Clean all environment volumes? Data loss risk. [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		docker compose down todoapp-postgres && \
-		rm -rf out/pgdata && \
+		docker compose down todoapp-postgres port-forwarder && \
+		rm -rf ${PROJECT_ROOT}/out/pgdata && \
 		echo "Environment cleaned"; \
 	else \
 		echo "Cleanup cancelled"; \
@@ -52,3 +53,9 @@ env-port-forward:
 
 env-port-close:
 	@docker compose down port-forwarder
+
+todoapp-run:
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	export POSTGRES_HOST=localhost && \
+	go mod tidy && \
+	go run ${PROJECT_ROOT}/cmd/todoapp/main.go
