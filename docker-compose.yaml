@@ -1,6 +1,6 @@
 services:
   todoapp-postgres:
-    image: postgres:18.4-bookworm
+    image: postgres:bookworm
     container_name: todoapp-env-postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
