@@ -70,7 +70,10 @@ todoapp-run:
 	go run ${PROJECT_ROOT}/cmd/todoapp/main.go
 
 todoapp-deploy:
-	@docker-compose up -d --build todoapp
+	@docker compose up -d --build todoapp
+
+todoapp-undeploy:
+	@docker compose dow todoapp
 
 ps:
 	@docker compose ps
