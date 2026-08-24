@@ -1,7 +1,7 @@
 include .env
 export
 
-export PROJECT_ROOT=$(shell pwd)
+export PROJECT_ROOT := $(CURDIR)
 
 env-up:
 	@docker compose up -d todoapp-postgres
@@ -74,6 +74,14 @@ todoapp-deploy:
 
 todoapp-undeploy:
 	@docker compose down todoapp
+
+swagger-gen:
+	@docker compose run --rm swagger \
+		init \
+		-g cmd/todoapp/main.go \
+		-o docs \
+		--parseInternal \
+		--parseDependency
 
 ps:
 	@docker compose ps
