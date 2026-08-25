@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Планировщик задач</title>
+<style>
+:root{--bg:#f4f5f7;--surface:#fff;--surface-soft:#fafbfc;--border:#e7e9ee;--text:#242833;--muted:#777f8d;--accent:#5c67d8;--accent-2:#8d7cf0;--success:#2f9d67;--danger:#d65762;--warn:#b9852f;--shadow:0 10px 30px rgba(34,39,52,.07);--radius:18px}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}.sidebar{padding:24px 16px;border-right:1px solid var(--border);background:rgba(255,255,255,.84);backdrop-filter:blur(18px);position:sticky;top:0;height:100vh}.brand{display:flex;gap:12px;align-items:center;padding:8px 10px 22px}.brand-mark{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-weight:800;box-shadow:0 10px 24px rgba(92,103,216,.22)}.brand h1{font-size:15px;margin:0}.brand span{display:block;font-size:11px;color:var(--muted);margin-top:2px}.nav{display:grid;gap:6px}.nav button{width:100%;text-align:left;background:transparent;color:var(--muted);border:1px solid transparent;padding:11px 12px;border-radius:12px;transition:.18s}.nav button:hover{background:#f5f6f9;color:var(--text)}.nav button.active{background:#f0f1fb;border-color:#dddff0;color:#3e469d}.sidebar-bottom{position:absolute;left:16px;right:16px;bottom:18px;color:var(--muted);font-size:11px;line-height:1.5}.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px;background:var(--warn)}.status-dot.ok{background:var(--success)}.status-dot.bad{background:var(--danger)}
+.main{padding:30px;min-width:0}.topbar{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:24px}.eyebrow{color:var(--accent);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.title{font-size:31px;line-height:1.1;margin:7px 0 6px}.subtitle{color:var(--muted);font-size:14px;margin:0}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--border);background:#fff;color:var(--text);padding:10px 13px;border-radius:11px;box-shadow:0 3px 10px rgba(30,36,48,.03)}.btn:hover{border-color:#cbd0dc;background:#fbfbfc}.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:transparent;color:#fff}.btn.danger{background:#fff4f5;border-color:#f0c8cd;color:#ad3b46}.btn.ghost{background:transparent;box-shadow:none}
+.view{display:none}.view.active{display:block}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}.metric-label{font-size:12px;color:var(--muted)}.metric-value{font-size:28px;font-weight:750;margin-top:12px}.metric-extra{font-size:12px;color:var(--muted);margin-top:5px}.metric-good{color:var(--success)}
+.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}.panel-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.panel-title{font-size:15px;font-weight:700}.panel-sub{font-size:12px;color:var(--muted)}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:7px}.field.full{grid-column:1/-1}.field label{font-size:12px;color:var(--muted)}.field input,.field select,.field textarea{width:100%;background:var(--surface-soft);border:1px solid var(--border);color:var(--text);border-radius:11px;padding:10px 11px;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:#b8bef0;box-shadow:0 0 0 3px rgba(92,103,216,.1)}.field textarea{min-height:90px;resize:vertical}.field input:disabled,.field select:disabled{opacity:.7;background:#f2f3f6}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.helper{font-size:11px;color:var(--muted)}
+.filters{display:grid;grid-template-columns:1.3fr .8fr .8fr .7fr auto;gap:9px;margin-bottom:14px}.filters input,.filters select{background:var(--surface-soft);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:9px 10px}.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:13px}.pill{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;border:1px solid var(--border);background:#f6f7f9}.pill.success{color:#26784e;border-color:#c8e5d4;background:#f0faf5}.pill.pending{color:#8c6925;border-color:#eadcba;background:#fcf8ee}.mini-actions{display:flex;gap:6px;flex-wrap:wrap}.mini{padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:11px}.mini:hover{border-color:#c6cbd7}
+.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:13px}.table{width:100%;border-collapse:collapse;min-width:820px}.table th,.table td{padding:11px 12px;border-bottom:1px solid var(--border);text-align:left;font-size:12px;vertical-align:top}.table th{color:var(--muted);font-weight:600;background:#fafbfc;position:sticky;top:0}.table tr:last-child td{border-bottom:0}.table td code{color:#5961a6}
+.json{background:#f7f8fa;border:1px solid var(--border);border-radius:11px;padding:12px;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#505967;max-height:320px;overflow:auto}.spinner{width:14px;height:14px;border:2px solid #d8dbe3;border-top-color:#6f77d9;border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:-2px}@keyframes spin{to{transform:rotate(360deg)}}
+.user-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.user-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}.user-cover{height:92px;background:linear-gradient(135deg,var(--g1),var(--g2));position:relative}.user-avatar{position:absolute;left:18px;bottom:-22px;width:58px;height:58px;border-radius:18px;display:grid;place-items:center;color:#fff;font-size:19px;font-weight:800;border:4px solid #fff;box-shadow:0 7px 18px rgba(31,37,53,.14);background:linear-gradient(135deg,var(--g2),var(--g1))}.user-body{padding:32px 18px 17px}.user-name{font-weight:750;font-size:16px}.user-phone{font-size:12px;color:var(--muted);margin-top:4px}.user-meta{display:flex;justify-content:space-between;gap:8px;margin-top:16px;color:var(--muted);font-size:11px}.user-actions{display:flex;gap:8px;margin-top:15px}.user-actions .mini{flex:1}.user-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#737a88}
+.user-picker{position:relative}.user-picker-trigger{width:100%;display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--surface-soft);border:1px solid var(--border);border-radius:11px;padding:8px 10px;color:var(--text);text-align:left}.user-picker-trigger:hover{border-color:#cbd0dc}.user-picker-trigger:disabled{opacity:.65;cursor:not-allowed}.picker-left{display:flex;align-items:center;gap:9px;min-width:0}.picker-avatar{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:800;flex:0 0 auto;background:linear-gradient(135deg,#747de2,#a08ff0)}.picker-text{min-width:0}.picker-name{font-size:12px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.picker-sub{font-size:10px;color:var(--muted);margin-top:1px}.picker-arrow{color:var(--muted);font-size:12px}.user-picker-menu{position:absolute;z-index:30;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 38px rgba(32,36,49,.13);padding:7px;display:none;max-height:300px;overflow:auto}.user-picker.open .user-picker-menu{display:block}.picker-search{width:100%;padding:9px;border:1px solid var(--border);border-radius:10px;margin-bottom:6px;background:#fafbfc;outline:none}.picker-option{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;padding:9px;border-radius:10px;text-align:left}.picker-option:hover{background:#f3f4fa}.picker-option.active{background:#f0f1fb}.picker-none{padding:12px;color:var(--muted);font-size:11px}
+.toast{position:fixed;right:20px;bottom:20px;z-index:40;background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:0 18px 40px rgba(33,38,49,.13);min-width:260px;transform:translateY(20px);opacity:0;pointer-events:none;transition:.2s}.toast.show{transform:translateY(0);opacity:1}.toast.ok{border-color:#cae7d7}.toast.err{border-color:#efc8cd}.toast-title{font-weight:700;font-size:12px;margin-bottom:3px}.toast-body{color:var(--muted);font-size:11px}
+.modal{position:fixed;inset:0;background:rgba(39,44,56,.34);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:35;padding:18px}.modal.open{display:flex}.confirm-box{display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fff8f8;border:1px solid #f0d1d4;border-radius:14px}.confirm-icon{width:34px;height:34px;flex:0 0 auto;border-radius:11px;display:grid;place-items:center;background:#fdebed;color:#b43e4b;font-weight:800}.modal-card{width:min(700px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 28px 70px rgba(30,34,45,.18);padding:18px}.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}.close{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:#fff;color:var(--muted)}
+
+.task-filters{grid-template-columns:1.35fr .55fr .55fr auto}.task-table-wrap{overflow:auto;border:1px solid var(--border);border-radius:15px}.task-table{width:100%;border-collapse:separate;border-spacing:0;min-width:900px}.task-table th{padding:10px 13px;text-align:left;font-size:11px;color:var(--muted);font-weight:650;background:#fafbfc;border-bottom:1px solid var(--border)}.task-table th:first-child{width:48px;text-align:center}.task-table th:last-child{width:176px}.task-table td{padding:12px 13px;border-bottom:1px solid var(--border);background:#fff;vertical-align:middle}.task-table tr:last-child td{border-bottom:0}.task-table tr:hover td{background:#fcfcfe}.task-check{width:20px;height:20px;accent-color:var(--accent);cursor:pointer;display:block;margin:0 auto}.task-main{min-width:420px}.task-title-line{display:flex;align-items:center;gap:9px}.task-title{font-weight:750;font-size:14px;line-height:1.3;color:var(--text)}.task-title.completed{text-decoration:line-through;color:#8d939e}.task-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4;max-width:720px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.task-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:7px;font-size:10.5px;color:var(--muted)}.task-meta .meta-item{display:inline-flex;align-items:center;gap:4px}.task-meta .meta-label{color:#a0a5ae}.task-person{display:flex;align-items:center;gap:8px;min-width:170px}.task-person-name{font-size:12px;font-weight:600}.task-person-sub{font-size:10px;color:var(--muted);margin-top:1px}.task-actions{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap}.task-state{white-space:nowrap}.task-duration{color:#5d6580;font-weight:600}.task-status-note{display:inline-flex;align-items:center;gap:5px}.task-status-dot{width:7px;height:7px;border-radius:50%;background:#c2c6ce}.task-status-dot.done{background:var(--success)}
+@media (max-width:1100px){.user-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:1000px){.app{grid-template-columns:1fr}.sidebar{height:auto;position:relative;border-right:0;border-bottom:1px solid var(--border)}.sidebar-bottom{position:static;margin-top:16px}.nav{grid-template-columns:repeat(4,minmax(0,1fr))}.grid{grid-template-columns:1fr}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:700px){.user-grid{grid-template-columns:1fr}.main{padding:18px}.topbar{flex-direction:column}.cards{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">T</div><div><h1>Task Manager</h1><span>Планировщик задач</span></div></div>
+    <nav class="nav">
+      <button class="active" data-view="dashboard">Обзор</button>
+      <button data-view="tasks">Задачи</button>
+      <button data-view="users">Команда</button>
+      <button data-view="api">Настройки</button>
+    </nav>
+    <div class="sidebar-bottom"><span id="statusDot" class="status-dot"></span><span id="apiStatus">Проверка API…</span><br>Base URL: <code>127.0.0.1:5050/api/v1</code></div>
+  </aside>
+
+  <main class="main">
+    <section class="topbar">
+      <div><div id="eyebrow" class="eyebrow">ОБЗОР</div><h2 id="viewTitle" class="title">Обзор планировщика</h2><p id="viewSubtitle" class="subtitle">Что происходит с задачами прямо сейчас.</p></div>
+      <div class="toolbar"><button class="btn ghost" id="refreshBtn">↻ Обновить</button><button class="btn primary" id="quickCreateBtn">＋ Создать задачу</button></div>
+    </section>
+
+    <section id="dashboard" class="view active">
+      <div class="cards">
+        <div class="card"><div class="metric-label">Всего создано</div><div id="mCreated" class="metric-value">—</div><div class="metric-extra">за выбранный период</div></div>
+        <div class="card"><div class="metric-label">Завершено</div><div id="mCompleted" class="metric-value">—</div><div class="metric-extra">задачи закрыты</div></div>
+        <div class="card"><div class="metric-label">Процент завершения</div><div id="mRate" class="metric-value metric-good">—</div><div class="metric-extra">от всех созданных</div></div>
+        <div class="card"><div class="metric-label">Среднее время</div><div id="mAvg" class="metric-value">—</div><div class="metric-extra">от создания до завершения</div></div>
+      </div>
+      <div class="grid">
+        <div class="panel"><div class="panel-head"><div><div class="panel-title">Посмотреть статистику</div><div class="panel-sub">Можно выбрать человека и период.</div></div></div>
+          <div class="form-grid">
+            <div class="field full"><label>Пользователь</label><div id="statsUserPicker"></div><input id="statsUser" type="hidden"></div>
+            <div class="field"><label>С какой даты</label><input id="statsFrom" type="date"></div>
+            <div class="field"><label>По какую дату</label><input id="statsTo" type="date"></div>
+          </div>
+          <div class="actions"><button class="btn primary" id="loadStats">Показать статистику</button></div>
+        </div>
+        <div class="panel"><div class="panel-head"><div><div class="panel-title">Последний ответ</div><div class="panel-sub">Техническая информация, если она понадобится.</div></div></div><div class="json" id="lastResponse">Ожидание запроса…</div></div>
+      </div>
+    </section>
+
+    <section id="tasks" class="view">
+      <div class="panel">
+        <div class="panel-head"><div><div class="panel-title">Задачи</div><div class="panel-sub">Отмечайте выполненное, смотрите детали и быстро меняйте задачи.</div></div><button class="btn primary" id="createTaskBtn">＋ Новая задача</button></div>
+        <div class="filters task-filters"><input type="hidden" id="taskUserFilter" value=""><div id="taskUserPicker"></div><input id="taskLimit" type="number" min="1" value="20" placeholder="Сколько задач показать"><input id="taskOffset" type="number" min="0" value="0" placeholder="Начать с"><button class="btn" id="loadTasks">Обновить список</button></div>
+        <div id="tasksTable"></div>
+      </div>
+    </section>
+
+    <section id="users" class="view">
+      <div class="panel">
+        <div class="panel-head"><div><div class="panel-title">Команда</div><div class="panel-sub">Все пользователи планировщика — с быстрыми действиями.</div></div><button class="btn primary" id="createUserBtn">＋ Добавить человека</button></div>
+        <div class="filters"><input id="userSearch" type="text" placeholder="Найти по имени или телефону"><input id="userLimit" type="number" min="1" value="20" placeholder="Сколько показать"><input id="userOffset" type="number" min="0" value="0" placeholder="С какого места"><div></div><button class="btn" id="loadUsers">Обновить</button></div>
+        <div id="usersTable"></div>
+      </div>
+    </section>
+
+    <section id="api" class="view">
+      <div class="grid">
+        <div class="panel"><div class="panel-head"><div><div class="panel-title">Подключение</div><div class="panel-sub">Адрес вашего сервера задач.</div></div></div>
+          <div class="field"><label>Адрес API</label><input id="baseUrl" value="http://127.0.0.1:5050/api/v1"></div>
+          <div class="helper" style="margin-top:10px">Это технический раздел — обычному пользователю менять его не нужно.</div>
+          <div class="actions"><button class="btn primary" id="saveBase">Сохранить</button></div>
+        </div>
+        <div class="panel"><div class="panel-head"><div><div class="panel-title">Доступные возможности</div><div class="panel-sub">Сервис поддерживает пользователей, задачи и статистику.</div></div></div>
+          <div class="json">GET    /statistics
+GET    /tasks
+POST   /tasks
+GET    /tasks/{id}
+PATCH  /tasks/{id}
+DELETE /tasks/{id}
+GET    /users
+POST   /users
+GET    /users/{id}
+PATCH  /users/{id}
+DELETE /users/{id}</div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="modal"><div class="modal-card"><div class="modal-head"><div><div id="modalTitle" class="panel-title">Форма</div><div id="modalSubtitle" class="panel-sub">Редактирование данных</div></div><button class="close" id="closeModal">✕</button></div><div id="modalBody"></div></div></div>
+<div class="toast" id="toast"><div id="toastTitle" class="toast-title"></div><div id="toastBody" class="toast-body"></div></div>
+
+<script>
+(() => {
+  const state = {
+    baseUrl: localStorage.getItem('taskApiBase') || 'http://127.0.0.1:5050/api/v1',
+    view: 'dashboard',
+    users: []
+  };
+  const $ = s => document.querySelector(s);
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const colors = [
+    ['#6872dc','#9b89ef'],['#4f9d9a','#78c7bd'],['#db7b70','#e7a26b'],['#7b8fd9','#b29aed'],
+    ['#8d7bc0','#d092c8'],['#5e98d6','#7cc5df'],['#b17b6b','#df9d82'],['#6ea083','#a4cb94']
+  ];
+  const userById = id => state.users.find(u => String(u.id) === String(id));
+  const initials = name => String(name || '??').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '??';
+  const userStyle = u => {
+    const i = (Number(u?.id || 0)) % colors.length;
+    return `--g1:${colors[i][0]};--g2:${colors[i][1]}`;
+  };
+  const fmtDate = v => v ? new Date(v).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+  const fmtDuration = v => v || '—';
+
+  const showToast = (title, body = '', type = 'ok') => {
+    const t = $('#toast');
+    $('#toastTitle').textContent = title;
+    $('#toastBody').textContent = body;
+    t.className = 'toast show ' + (type === 'ok' ? 'ok' : 'err');
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(() => { t.className = 'toast'; }, 3400);
+  };
+
+  const setBusy = (btn, busy, label) => {
+    if (!btn) return;
+    btn.disabled = busy;
+    btn.dataset.old = btn.dataset.old || btn.innerHTML;
+    btn.innerHTML = busy ? '<span class="spinner"></span> Работаем…' : (label || btn.dataset.old);
+  };
+
+  async function api(path, options = {}) {
+    const url = state.baseUrl.replace(/\/$/, '') + path;
+    const headers = {
+      accept: 'application/json',
+      ...(options.body ? { 'content-type': 'application/json' } : {}),
+      ...(options.headers || {})
+    };
+    const res = await fetch(url, { ...options, headers });
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+    if (!res.ok) {
+      const e = new Error(data?.message || data?.error || res.statusText || 'Ошибка сервера');
+      e.status = res.status;
+      e.data = data;
+      throw e;
+    }
+    return data;
+  }
+
+  function setResponse(data) {
+    $('#lastResponse').textContent = JSON.stringify(data, null, 2);
+  }
+
+  function updateStatus(ok, text) {
+    $('#statusDot').className = 'status-dot ' + (ok ? 'ok' : 'bad');
+    $('#apiStatus').textContent = text;
+  }
+
+  function openModal(title, subtitle, body) {
+    $('#modalTitle').textContent = title;
+    $('#modalSubtitle').textContent = subtitle;
+    $('#modalBody').innerHTML = body;
+    $('#modal').classList.add('open');
+  }
+
+  function closeModal() {
+    $('#modal').classList.remove('open');
+  }
+
+  async function fetchUsers() {
+    try {
+      const data = await api('/users?limit=100');
+      state.users = Array.isArray(data) ? data : [];
+      renderAllPickers();
+      updateStatus(true, 'Сервер доступен');
+    } catch (e) {
+      state.users = [];
+      updateStatus(false, 'Сервер недоступен');
+    }
+  }
+
+  function pickerMarkup(id, selected, placeholder) {
+    const u = selected ? userById(selected) : null;
+    return `<div class="user-picker" data-picker="${id}" data-value="${esc(selected || '')}">
+      <button type="button" class="user-picker-trigger">
+        <span class="picker-left">
+          ${u
+            ? `<span class="picker-avatar" style="${userStyle(u)}">${initials(u.full_name)}</span>
+               <span class="picker-text"><span class="picker-name">${esc(u.full_name)}</span><span class="picker-sub">№ ${esc(u.id)}</span></span>`
+            : `<span class="picker-avatar">?</span>
+               <span class="picker-text"><span class="picker-name">${esc(placeholder)}</span><span class="picker-sub">Выберите человека</span></span>`}
+        </span>
+        <span class="picker-arrow">⌄</span>
+      </button>
+      <div class="user-picker-menu">
+        <input class="picker-search" placeholder="Найти человека…">
+        <div class="picker-options"></div>
+      </div>
+    </div>`;
+  }
+
+  function renderPickerOptions(root) {
+    const picker = root.matches?.('.user-picker') ? root : root.querySelector('.user-picker');
+    if (!picker) return;
+    const searchEl = picker.querySelector('.picker-search');
+    const q = (searchEl?.value || '').trim().toLowerCase();
+    const current = picker.dataset.value || '';
+    const options = state.users.filter(u =>
+      !q ||
+      String(u.full_name || '').toLowerCase().includes(q) ||
+      String(u.phone_number || '').toLowerCase().includes(q)
+    );
+    const box = picker.querySelector('.picker-options');
+    box.innerHTML =
+      `<button type="button" class="picker-option ${current === '' ? 'active' : ''}" data-user-option="">
+        <span class="picker-avatar">—</span>
+        <span class="picker-text"><span class="picker-name">Не выбрано</span><span class="picker-sub">Все пользователи</span></span>
+      </button>` +
+      (options.length
+        ? options.map(u =>
+            `<button type="button" class="picker-option ${String(u.id) === String(current) ? 'active' : ''}" data-user-option="${esc(u.id)}">
+              <span class="picker-avatar" style="${userStyle(u)}">${initials(u.full_name)}</span>
+              <span class="picker-text">
+                <span class="picker-name">${esc(u.full_name)}</span>
+                <span class="picker-sub">№ ${esc(u.id)}${u.phone_number ? ' · ' + esc(u.phone_number) : ''}</span>
+              </span>
+            </button>`
+          ).join('')
+        : '<div class="picker-none">Никого не нашли.</div>');
+  }
+
+  function syncPicker(id, hiddenId, placeholder) {
+    const root = $('#' + id);
+    if (!root) return;
+    const hidden = hiddenId ? $('#' + hiddenId) : null;
+    const selected = hidden?.value || '';
+    root.innerHTML = pickerMarkup(id, selected, placeholder);
+    const picker = root.querySelector('.user-picker');
+    if (picker) renderPickerOptions(picker);
+  }
+
+  function renderAllPickers() {
+    syncPicker('statsUserPicker', 'statsUser', 'Все пользователи');
+    syncPicker('taskUserPicker', 'taskUserFilter', 'Все пользователи');
+  }
+
+  async function loadStats() {
+    const btn = $('#loadStats');
+    setBusy(btn, true);
+    try {
+      const p = new URLSearchParams();
+      const statsUser = $('#statsUser');
+      if (statsUser && statsUser.value) p.set('user_id', statsUser.value);
+      if ($('#statsFrom').value) p.set('from', $('#statsFrom').value);
+      if ($('#statsTo').value) p.set('to', $('#statsTo').value);
+      const data = await api('/statistics' + (p.toString() ? '?' + p.toString() : ''));
+      $('#mCreated').textContent = data.tasks_created ?? '—';
+      $('#mCompleted').textContent = data.tasks_completed ?? '—';
+      $('#mRate').textContent = (data.tasks_completed_rate ?? '—') + (data.tasks_completed_rate == null ? '' : '%');
+      $('#mAvg').textContent = fmtDuration(data.tasks_average_completion_time);
+      setResponse(data);
+      updateStatus(true, 'Сервер доступен');
+      showToast('Статистика обновлена');
+    } catch (e) {
+      setResponse(e.data || { error: e.message });
+      updateStatus(false, 'Ошибка соединения');
+      showToast('Не получилось получить статистику', e.message, 'err');
+    } finally {
+      setBusy(btn, false, 'Показать статистику');
+    }
+  }
+
+  function durationBetween(from, to) {
+    if (!from) return '—';
+    const a = new Date(from).getTime();
+    const b = to ? new Date(to).getTime() : Date.now();
+    if (Number.isNaN(a) || Number.isNaN(b) || b < a) return '—';
+    let sec = Math.floor((b - a) / 1000);
+    const days = Math.floor(sec / 86400); sec %= 86400;
+    const hours = Math.floor(sec / 3600); sec %= 3600;
+    const mins = Math.floor(sec / 60);
+    if (days) return `${days} д ${hours} ч`;
+    if (hours) return `${hours} ч ${mins} мин`;
+    if (mins) return `${mins} мин`;
+    return `${Math.max(1, sec)} с`;
+  }
+
+  function taskRow(t) {
+    const u = userById(t.author_user_id);
+    const done = !!t.completed;
+    return `<tr>
+      <td><input class="task-check" type="checkbox" data-task-toggle="${esc(t.id)}" ${done ? 'checked' : ''} aria-label="${done ? 'Вернуть задачу в открытые' : 'Отметить задачу выполненной'}"></td>
+      <td>
+        <div class="task-main">
+          <div class="task-title-line">
+            <span class="task-title ${done ? 'completed' : ''}">${esc(t.title)}</span>
+            <span class="pill ${done ? 'success' : 'pending'} task-state">
+              <span class="task-status-note"><span class="task-status-dot ${done ? 'done' : ''}"></span>${done ? 'Готово' : 'В работе'}</span>
+            </span>
+          </div>
+          <div class="task-desc">${esc(t.description || 'Описание пока не добавлено')}</div>
+          <div class="task-meta">
+            <span class="meta-item"><span class="meta-label">Создана</span> ${esc(fmtDate(t.created_at))}</span>
+            <span class="meta-item"><span class="meta-label">${done ? 'Завершена' : 'В работе'}</span> ${done ? esc(fmtDate(t.completed_at)) : durationBetween(t.created_at, null)}</span>
+            ${done ? `<span class="meta-item task-duration"><span class="meta-label">Выполняли</span> ${esc(durationBetween(t.created_at, t.completed_at))}</span>` : ''}
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="task-person">
+          ${u
+            ? `<span class="picker-avatar" style="${userStyle(u)};width:34px;height:34px;border-radius:11px;font-size:10px">${initials(u.full_name)}</span>
+               <span><span class="task-person-name">${esc(u.full_name)}</span><span class="task-person-sub">Ответственный</span></span>`
+            : `<span class="picker-avatar">?</span>
+               <span><span class="task-person-name">Не указан</span><span class="task-person-sub">ID ${esc(t.author_user_id)}</span></span>`}
+        </div>
+      </td>
+      <td>
+        <div class="task-actions">
+          <button class="mini" data-task-view="${esc(t.id)}">Открыть</button>
+          <button class="mini" data-task-edit="${esc(t.id)}">Изменить</button>
+          <button class="mini" data-task-del="${esc(t.id)}">Удалить</button>
+        </div>
+      </td>
+    </tr>`;
+  }
+
+  async function toggleTask(id, completed, input) {
+    if (input) input.disabled = true;
+    try {
+      const d = await api('/tasks/' + id, { method: 'PATCH', body: JSON.stringify({ completed }) });
+      setResponse(d);
+      showToast(completed ? 'Задача отмечена выполненной' : 'Задача снова открыта');
+      await loadTasks();
+      await loadStats();
+    } catch (e) {
+      if (input) input.checked = !completed;
+      showToast('Не получилось изменить статус', e.message, 'err');
+    } finally {
+      if (input) input.disabled = false;
+    }
+  }
+
+  async function loadTasks() {
+    const wrap = $('#tasksTable');
+    wrap.innerHTML = '<div class="empty"><span class="spinner"></span> Загружаем задачи…</div>';
+    try {
+      const userFilter = $('#taskUserFilter');
+      const limit = $('#taskLimit');
+      const offset = $('#taskOffset');
+      const p = new URLSearchParams();
+      if (userFilter && userFilter.value) p.set('user_id', userFilter.value);
+      if (limit && limit.value) p.set('limit', limit.value);
+      if (offset && offset.value) p.set('offset', offset.value);
+      const qs = p.toString();
+      const data = await api('/tasks' + (qs ? '?' + qs : ''));
+      if (!Array.isArray(data) || !data.length) {
+        wrap.innerHTML = '<div class="empty">Похоже, здесь пока нет задач.</div>';
+        setResponse(data || []);
+        return;
+      }
+      wrap.innerHTML = `<div class="task-table-wrap"><table class="task-table">
+        <thead><tr><th></th><th>Задача</th><th>Кто отвечает</th><th></th></tr></thead>
+        <tbody>${data.map(taskRow).join('')}</tbody>
+      </table></div>`;
+      setResponse(data);
+      updateStatus(true, 'Сервер доступен');
+    } catch (e) {
+      wrap.innerHTML = `<div class="empty">Не удалось загрузить задачи.<br><span class="helper">${esc(e.message)}</span></div>`;
+      updateStatus(false, 'Ошибка соединения');
+      setResponse(e.data || { error: e.message });
+      showToast('Не получилось загрузить задачи', e.message, 'err');
+    }
+  }
+
+  function userCard(u) {
+    return `<article class="user-card">
+      <div class="user-cover" style="${userStyle(u)}">
+        <span class="user-avatar" style="${userStyle(u)}">${initials(u.full_name)}</span>
+      </div>
+      <div class="user-body">
+        <div class="user-name">${esc(u.full_name)}</div>
+        <div class="user-phone">${esc(u.phone_number || 'Телефон не указан')}</div>
+        <div class="user-meta"><span>ID ${esc(u.id)}</span><span>Версия ${esc(u.version ?? '—')}</span></div>
+        <div class="user-actions">
+          <button class="mini" data-user-view="${esc(u.id)}">Открыть</button>
+          <button class="mini" data-user-edit="${esc(u.id)}">Изменить</button>
+          <button class="mini" data-user-del="${esc(u.id)}">Удалить</button>
+        </div>
+      </div>
+    </article>`;
+  }
+
+  async function loadUsers() {
+    const wrap = $('#usersTable');
+    wrap.innerHTML = '<div class="empty"><span class="spinner"></span> Загружаем команду…</div>';
+    try {
+      const p = new URLSearchParams();
+      if ($('#userLimit').value) p.set('limit', $('#userLimit').value);
+      if ($('#userOffset').value) p.set('offset', $('#userOffset').value);
+      let data = await api('/users?' + p.toString());
+      const q = ($('#userSearch').value || '').trim().toLowerCase();
+      if (q) {
+        data = data.filter(u =>
+          String(u.full_name || '').toLowerCase().includes(q) ||
+          String(u.phone_number || '').toLowerCase().includes(q)
+        );
+      }
+      if (!data.length) {
+        wrap.innerHTML = '<div class="empty">Пользователей пока не нашли.</div>';
+        return;
+      }
+      wrap.innerHTML = `<div class="user-grid">${data.map(userCard).join('')}</div>`;
+      setResponse(data);
+      updateStatus(true, 'Сервер доступен');
+    } catch (e) {
+      wrap.innerHTML = `<div class="empty">Не удалось загрузить пользователей.<br><span class="helper">${esc(e.message)}</span></div>`;
+      updateStatus(false, 'Ошибка соединения');
+      showToast('Не получилось загрузить пользователей', e.message, 'err');
+    }
+  }
+
+  function taskForm(task = null) {
+    const isEdit = !!task;
+    openModal(
+      isEdit ? 'Изменить задачу' : 'Новая задача',
+      isEdit ? `Задача №${task.id}` : 'Заполните пару полей — остальное сделает планировщик',
+      `<div class="form-grid">
+        <div class="field full">
+          <label>Кто отвечает</label>
+          <div id="taskFormUserPicker"></div>
+          ${isEdit ? '<div class="helper" style="margin-top:7px">Автор задачи хранится в API и через изменение задачи не меняется.</div>' : ''}
+        </div>
+        <div class="field full">
+          <label>Название задачи *</label>
+          <input id="fTaskTitle" required value="${esc(task?.title || '')}" placeholder="Например, подготовить отчёт">
+        </div>
+        <div class="field full">
+          <label>Описание</label>
+          <textarea id="fTaskDesc" placeholder="Что нужно сделать?">${esc(task?.description || '')}</textarea>
+        </div>
+        ${isEdit ? `<div class="field"><label>Статус</label>
+          <select id="fTaskCompleted">
+            <option value="false">Открыта</option>
+            <option value="true">Завершена</option>
+          </select>
+        </div>` : ''}
+      </div>
+      <div class="actions">
+        <button class="btn" id="cancelModal">Отмена</button>
+        <button class="btn primary" id="saveTask">Сохранить</button>
+      </div>`
+    );
+
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.id = 'fTaskAuthor';
+    hidden.value = task?.author_user_id || '';
+    $('#modalBody').prepend(hidden);
+
+    $('#taskFormUserPicker').innerHTML = pickerMarkup('taskFormUserPicker', task?.author_user_id || '', 'Выберите человека');
+    if (isEdit) {
+      const trigger = $('#taskFormUserPicker .user-picker-trigger');
+      if (trigger) trigger.disabled = true;
+    }
+    if (isEdit && $('#fTaskCompleted')) {
+      $('#fTaskCompleted').value = String(!!task.completed);
+    }
+
+    $('#cancelModal').onclick = closeModal;
+    $('#saveTask').onclick = async () => {
+      const btn = $('#saveTask');
+      setBusy(btn, true);
+      try {
+        if (isEdit) {
+          const body = {
+            completed: $('#fTaskCompleted').value === 'true',
+            title: $('#fTaskTitle').value.trim()
+          };
+          const desc = $('#fTaskDesc').value;
+          body.description = desc === '' ? null : desc;
+          const d = await api('/tasks/' + task.id, { method: 'PATCH', body: JSON.stringify(body) });
+          setResponse(d);
+          showToast('Задача обновлена');
+        } else {
+          if (!$('#fTaskAuthor').value) {
+            showToast('Нужно выбрать человека', 'Кто отвечает за задачу?', 'err');
+            return;
+          }
+          const d = await api('/tasks', {
+            method: 'POST',
+            body: JSON.stringify({
+              author_user_id: Number($('#fTaskAuthor').value),
+              title: $('#fTaskTitle').value.trim(),
+              description: $('#fTaskDesc').value || null
+            })
+          });
+          setResponse(d);
+          showToast('Задача создана');
+        }
+        closeModal();
+        loadTasks();
+        loadStats();
+      } catch (e) {
+        showToast('Не получилось сохранить задачу', e.message, 'err');
+      } finally {
+        setBusy(btn, false, 'Сохранить');
+      }
+    };
+  }
+
+  function userForm(user = null) {
+    const isEdit = !!user;
+    openModal(
+      isEdit ? 'Изменить человека' : 'Добавить человека',
+      isEdit ? `Профиль №${user.id}` : 'Добавьте имя и, при желании, телефон',
+      `<div class="form-grid">
+        <div class="field full">
+          <label>Имя и фамилия *</label>
+          <input id="fUserName" required value="${esc(user?.full_name || '')}" placeholder="Например, Иван Иванов">
+        </div>
+        <div class="field full">
+          <label>Телефон</label>
+          <input id="fUserPhone" value="${esc(user?.phone_number || '')}" placeholder="+7 999 888-77-66">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="cancelModal">Отмена</button>
+        <button class="btn primary" id="saveUser">Сохранить</button>
+      </div>`
+    );
+
+    $('#cancelModal').onclick = closeModal;
+    $('#saveUser').onclick = async () => {
+      const btn = $('#saveUser');
+      setBusy(btn, true);
+      try {
+        const body = { full_name: $('#fUserName').value.trim() };
+        body.phone_number = $('#fUserPhone').value.trim() || null;
+        const d = await api(
+          isEdit ? '/users/' + user.id : '/users',
+          { method: isEdit ? 'PATCH' : 'POST', body: JSON.stringify(body) }
+        );
+        setResponse(d);
+        showToast(isEdit ? 'Данные обновлены' : 'Человек добавлен');
+        closeModal();
+        await loadUsers();
+        await fetchUsers();
+      } catch (e) {
+        showToast('Не получилось сохранить профиль', e.message, 'err');
+      } finally {
+        setBusy(btn, false, 'Сохранить');
+      }
+    };
+  }
+
+  async function viewTask(id) {
+    try {
+      const d = await api('/tasks/' + id);
+      setResponse(d);
+      const u = userById(d.author_user_id);
+      openModal(
+        'Задача №' + id,
+        u ? `Ответственный: ${u.full_name}` : 'Подробности задачи',
+        `<div>
+          <div class="panel-title">${esc(d.title)}</div>
+          <p class="subtitle" style="margin-top:7px">${esc(d.description || 'Описание не добавлено.')}</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+            <span class="pill ${d.completed ? 'success' : 'pending'}">${d.completed ? 'Завершена' : 'Открыта'}</span>
+            <span class="pill">Создана ${esc(fmtDate(d.created_at))}</span>
+          </div>
+        </div>
+        <div class="actions"><button class="btn" id="modalOk">Закрыть</button></div>`
+      );
+      $('#modalOk').onclick = closeModal;
+    } catch (e) {
+      showToast('Ошибка', e.message, 'err');
+    }
+  }
+
+  async function viewUser(id) {
+    try {
+      const d = await api('/users/' + id);
+      setResponse(d);
+      openModal(
+        'Профиль',
+        d.full_name,
+        `<div style="display:flex;align-items:center;gap:12px">
+          <span class="user-avatar" style="position:static;${userStyle(d)}">${initials(d.full_name)}</span>
+          <div>
+            <div class="panel-title">${esc(d.full_name)}</div>
+            <div class="panel-sub">${esc(d.phone_number || 'Телефон не указан')} · ID ${esc(d.id)}</div>
+          </div>
+        </div>
+        <div class="actions"><button class="btn" id="modalOk">Закрыть</button></div>`
+      );
+      $('#modalOk').onclick = closeModal;
+    } catch (e) {
+      showToast('Ошибка', e.message, 'err');
+    }
+  }
+
+  async function editTask(id) {
+    try {
+      taskForm(await api('/tasks/' + id));
+    } catch (e) {
+      showToast('Не получилось открыть задачу', e.message, 'err');
+    }
+  }
+
+  async function editUser(id) {
+    try {
+      userForm(await api('/users/' + id));
+    } catch (e) {
+      showToast('Не получилось открыть профиль', e.message, 'err');
+    }
+  }
+
+  function confirmDelete(kind, id) {
+    const isTask = kind === 'task';
+    const noun = isTask ? 'эту задачу' : 'этого человека';
+    const title = isTask ? 'Удалить задачу?' : 'Удалить пользователя?';
+    const subtitle = isTask ? `Задача №${esc(id)}` : `Пользователь №${esc(id)}`;
+    openModal(
+      title,
+      subtitle,
+      `<div class="confirm-box">
+        <div class="confirm-icon">!</div>
+        <div>
+          <div class="panel-title">Точно удалить ${noun}?</div>
+          <p class="subtitle" style="margin-top:6px">Действие нельзя будет отменить.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="cancelDelete">Отмена</button>
+        <button class="btn danger" id="confirmDelete">Да, удалить</button>
+      </div>`
+    );
+    $('#cancelDelete').onclick = closeModal;
+    $('#confirmDelete').onclick = () => deleteEntity(kind, id);
+  }
+
+  async function deleteEntity(kind, id) {
+    const isTask = kind === 'task';
+    try {
+      const result = await api(`/${isTask ? 'tasks' : 'users'}/${id}`, { method: 'DELETE' });
+      setResponse(result);
+      closeModal();
+      showToast(isTask ? 'Задача удалена' : 'Пользователь удалён');
+      if (isTask) {
+        await loadTasks();
+        await loadStats();
+      } else {
+        await loadUsers();
+        await fetchUsers();
+      }
+    } catch (e) {
+      showToast('Удаление не выполнено', e.message, 'err');
+    }
+  }
+
+  function switchView(view) {
+    state.view = view;
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === view));
+    document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+    const meta = {
+      dashboard: ['ОБЗОР', 'Обзор планировщика', 'Что происходит с задачами прямо сейчас.'],
+      tasks: ['ЗАДАЧИ', 'Мои задачи', 'Создавайте, распределяйте и закрывайте задачи.'],
+      users: ['КОМАНДА', 'Люди', 'Все участники планировщика в одном месте.'],
+      api: ['НАСТРОЙКИ', 'Настройки подключения', 'Технические параметры приложения.']
+    }[view];
+    $('#eyebrow').textContent = meta[0];
+    $('#viewTitle').textContent = meta[1];
+    $('#viewSubtitle').textContent = meta[2];
+    $('#quickCreateBtn').style.display = (view === 'users' || view === 'api') ? 'none' : 'inline-block';
+    if (view === 'tasks') loadTasks();
+    if (view === 'users') loadUsers();
+    if (view === 'dashboard') loadStats();
+  }
+
+  // --- events ---
+  document.querySelectorAll('.nav button').forEach(b => {
+    b.onclick = () => switchView(b.dataset.view);
+  });
+
+  $('#refreshBtn').onclick = () => {
+    if (state.view === 'dashboard') loadStats();
+    else if (state.view === 'tasks') loadTasks();
+    else if (state.view === 'users') loadUsers();
+    else checkApi();
+  };
+
+  $('#quickCreateBtn').onclick = () => taskForm();
+  $('#createTaskBtn').onclick = () => taskForm();
+  $('#createUserBtn').onclick = () => userForm();
+  $('#loadStats').onclick = loadStats;
+  $('#loadTasks').onclick = loadTasks;
+  $('#loadUsers').onclick = loadUsers;
+  $('#closeModal').onclick = closeModal;
+
+  $('#modal').addEventListener('click', e => {
+    if (e.target.id === 'modal') closeModal();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Единый обработчик кликов (исправлены dataset: kebab → camelCase)
+  document.addEventListener('click', e => {
+    // User picker open/close & select
+    const p = e.target.closest('.user-picker');
+    if (p && e.target.closest('.user-picker-trigger')) {
+      document.querySelectorAll('.user-picker.open').forEach(x => {
+        if (x !== p) x.classList.remove('open');
+      });
+      p.classList.toggle('open');
+      renderPickerOptions(p);
+      return;
+    }
+    if (p && e.target.closest('.picker-option')) {
+      const btn = e.target.closest('.picker-option');
+      p.dataset.value = btn.dataset.userOption || '';
+      const parentId = p.parentElement?.id;
+      if (parentId === 'statsUserPicker' && $('#statsUser')) {
+        $('#statsUser').value = btn.dataset.userOption || '';
+      }
+      if (parentId === 'taskUserPicker' && $('#taskUserFilter')) {
+        $('#taskUserFilter').value = btn.dataset.userOption || '';
+      }
+      if (parentId === 'taskFormUserPicker' && $('#fTaskAuthor')) {
+        $('#fTaskAuthor').value = btn.dataset.userOption || '';
+      }
+      const val = p.dataset.value || '';
+      const u = userById(val);
+      const nameEl = p.querySelector('.picker-name');
+      const subEl = p.querySelector('.picker-sub');
+      const avEl = p.querySelector('.picker-avatar');
+      if (nameEl) nameEl.textContent = u ? u.full_name : 'Не выбрано';
+      if (subEl) subEl.textContent = u ? '№ ' + u.id : 'Выберите человека';
+      if (avEl) {
+        avEl.textContent = u ? initials(u.full_name) : '—';
+        if (u) avEl.setAttribute('style', userStyle(u));
+        else avEl.removeAttribute('style');
+      }
+      p.classList.remove('open');
+      return;
+    }
+    if (p && e.target.closest('.picker-search')) return;
+    if (!p) document.querySelectorAll('.user-picker.open').forEach(x => x.classList.remove('open'));
+
+    // Task checkbox toggle
+    const toggle = e.target.closest('[data-task-toggle]');
+    if (toggle) {
+      toggleTask(toggle.dataset.taskToggle, toggle.checked, toggle);
+      return;
+    }
+
+    // Action buttons — правильные camelCase ключи dataset
+    const b = e.target.closest('button');
+    if (!b) return;
+
+    if (b.dataset.taskView) { viewTask(b.dataset.taskView); return; }
+    if (b.dataset.taskEdit) { editTask(b.dataset.taskEdit); return; }
+    if (b.dataset.taskDel)  { confirmDelete('task', b.dataset.taskDel); return; }
+    if (b.dataset.userView) { viewUser(b.dataset.userView); return; }
+    if (b.dataset.userEdit) { editUser(b.dataset.userEdit); return; }
+    if (b.dataset.userDel)  { confirmDelete('user', b.dataset.userDel); return; }
+  });
+
+  document.addEventListener('input', e => {
+    if (e.target.classList.contains('picker-search')) {
+      renderPickerOptions(e.target.closest('.user-picker'));
+    }
+  });
+
+  $('#saveBase').onclick = () => {
+    const v = $('#baseUrl').value.trim().replace(/\/$/, '');
+    if (!/^https?:\/\//.test(v)) {
+      showToast('Некорректный адрес', 'Нужен http:// или https://', 'err');
+      return;
+    }
+    state.baseUrl = v;
+    localStorage.setItem('taskApiBase', v);
+    showToast('Адрес сохранён');
+    checkApi();
+  };
+  $('#baseUrl').value = state.baseUrl;
+
+  async function checkApi() {
+    try {
+      await api('/statistics');
+      updateStatus(true, 'Сервер доступен');
+    } catch (e) {
+      updateStatus(false, 'Сервер недоступен');
+    }
+  }
+
+  (async () => {
+    await fetchUsers();
+    renderAllPickers();
+    checkApi();
+    loadStats();
+  })();
+})();
+</script>
+</body>
+</html>
