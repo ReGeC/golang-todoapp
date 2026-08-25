@@ -82,7 +82,7 @@
     <section id="api" class="view">
       <div class="grid">
         <div class="panel"><div class="panel-head"><div><div class="panel-title">Подключение</div><div class="panel-sub">Адрес вашего сервера задач.</div></div></div>
-          <div class="field"><label>Адрес API</label><input id="baseUrl" value="http://127.0.0.1:5050/api/v1"></div>
+          <div class="field"><label>Адрес API</label><input id="baseUrl" value="/api/v1"></div>
           <div class="helper" style="margin-top:10px">Это технический раздел — обычному пользователю менять его не нужно.</div>
           <div class="actions"><button class="btn primary" id="saveBase">Сохранить</button></div>
         </div>
@@ -110,7 +110,7 @@ DELETE /users/{id}</div>
 <script>
 (() => {
   const state = {
-    baseUrl: localStorage.getItem('taskApiBase') || 'http://127.0.0.1:5050/api/v1',
+    baseUrl: localStorage.getItem('taskApiBase') || '/api/v1',
     view: 'dashboard',
     users: []
   };
