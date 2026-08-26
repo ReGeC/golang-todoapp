@@ -56,7 +56,7 @@ type PatchTaskResponse TaskDTOResponse
 // @Description 1. **Поле не передано**: `description` игнорируется, значение в БД не меняется
 // @Description 2. **Явно передано значение**: `"description": "desc"` - устанавливает новое описание для задачи в БД
 // @Description 3. **Передан null**: `"description": null` - очищает поле в БД (set to NULL)
-// @Description **Ограничения**: `title` и `description` не могут быть выставлены как null
+// @Description **Ограничения**: `title` и `completed` не могут быть выставлены как null
 // @Tags 		tasks
 // @Accept 		json
 // @Produce 	json
